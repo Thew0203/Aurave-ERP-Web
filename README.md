@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Aruave – Electronics & IT Industry ERP
 
 A complete, business-ready web ERP for the **electronics and IT industry** (Arduino, networking, computers, components & more). Integrated e-commerce and order management. Built with PHP (OOP, MVC), MySQL, Bootstrap 5, and vanilla JavaScript. Multi-tenant (SaaS-ready), animated UI, and XAMPP/LAMP compatible.
@@ -209,3 +210,6 @@ See **[SECURITY.md](SECURITY.md)** for how to report vulnerabilities and what no
 ## License
 
 MIT License. See **[LICENSE](LICENSE)**.
+=======
+# Aurave-ERP-Web
+>>>>>>> dfc98f0841ef446a6ed3ba78fd57078d55ef8b73
