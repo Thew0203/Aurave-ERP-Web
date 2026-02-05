@@ -205,7 +205,7 @@ The seed creates **only one user** (Super Admin). No employees, customers, or ot
 ## Features Implemented
 
 - **Auth:** Login, register, logout, role-based redirects.
-- **Login security mailer:** On every login, an email is sent to **that user’s email** (from the database). Sender shows as "Aurave". No hardcoded recipient list; every user (karbonOlid@gmail.com, shermil@ssu.edu.ph, etc.) gets the alert at their own address.
+- **Login security mailer:** On every login, an email is sent to **that user’s email** (from the database). Sender shows as "Aurave". No hardcoded recipient list; every user gets the alert at their own address.
 - **Inventory:** Products CRUD, categories, suppliers, stock in/out, low-stock alerts, valuation.
 - **Production:** BOM (header + items), production orders, material consumption, finished goods.
 - **Sales:** POS-style sales, customer selection, invoices, sales list.
