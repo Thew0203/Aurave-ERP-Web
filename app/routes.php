@@ -6,6 +6,7 @@ $router = new Router();
 $router->get('/', 'HomeController@index');
 $router->get('/auth/login', 'AuthController@loginForm', ['GuestMiddleware']);
 $router->post('/auth/login', 'AuthController@login', ['GuestMiddleware']);
+$router->get('/auth/verify-login', 'AuthController@verifyLogin');
 $router->get('/auth/register', 'AuthController@registerForm', ['GuestMiddleware']);
 $router->post('/auth/register', 'AuthController@register', ['GuestMiddleware']);
 $router->get('/auth/logout', 'AuthController@logout');
@@ -82,6 +83,7 @@ $router->group(function (Router $r) {
     $r->get('/orders', 'OrderController@index', ['AuthMiddleware', 'StaffMiddleware']);
     $r->get('/orders/view/{id}', 'OrderController@viewOrder', ['AuthMiddleware', 'StaffMiddleware']);
     $r->post('/orders/status/{id}', 'OrderController@updateStatus', ['AuthMiddleware', 'StaffMiddleware']);
+    $r->post('/orders/payment/{id}', 'OrderController@updatePaymentStatus', ['AuthMiddleware', 'StaffMiddleware']);
     $r->post('/orders/delete/{id}', 'OrderController@orderDelete', ['AuthMiddleware', 'StaffMiddleware']);
     $r->get('/orders/invoice/{id}', 'OrderController@invoice', ['AuthMiddleware', 'StaffMiddleware']);
 

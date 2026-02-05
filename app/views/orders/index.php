@@ -37,7 +37,7 @@ include dirname(__DIR__) . '/layout/header.php';
                         <td><span class="badge bg-<?= ($o['payment_status'] ?? '') === 'paid' ? 'success' : 'warning' ?>"><?= htmlspecialchars($o['payment_status'] ?? '') ?></span></td>
                         <td>
                             <a href="<?= $baseUrl ?>/orders/view/<?= (int)$o['id'] ?>" class="btn btn-sm btn-outline-primary">View</a>
-                            <a href="<?= $baseUrl ?>/orders/invoice/<?= (int)$o['id'] ?>" class="btn btn-sm btn-outline-secondary">Invoice</a>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#invoiceModal" data-invoice-url="<?= $baseUrl ?>/orders/invoice/<?= (int)$o['id'] ?>?embed=1">Invoice</button>
                             <?php if (($o['current_status'] ?? '') !== 'cancelled'): ?>
                             <form method="post" action="<?= $baseUrl ?>/orders/status/<?= (int)$o['id'] ?>" class="d-inline">
                                 <input type="hidden" name="status" value="cancelled">
@@ -61,4 +61,31 @@ include dirname(__DIR__) . '/layout/header.php';
         </div>
     </div>
 </div>
+
+<!-- Invoice Modal -->
+<div class="modal fade" id="invoiceModal" tabindex="-1" aria-labelledby="invoiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="invoiceModalLabel">Order Invoice</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0" style="min-height: 70vh;">
+                <iframe id="invoiceIframe" style="width:100%; height:75vh; border:none;" title="Order Invoice"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.getElementById('invoiceModal').addEventListener('show.bs.modal', function(e) {
+    var btn = e.relatedTarget;
+    var url = btn && btn.getAttribute('data-invoice-url');
+    var iframe = document.getElementById('invoiceIframe');
+    if (url && iframe) iframe.src = url;
+});
+document.getElementById('invoiceModal').addEventListener('hidden.bs.modal', function() {
+    var iframe = document.getElementById('invoiceIframe');
+    if (iframe) iframe.src = 'about:blank';
+});
+</script>
 <?php include dirname(__DIR__) . '/layout/footer.php'; ?>

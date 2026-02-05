@@ -12,7 +12,8 @@ class Database
     public static function getInstance(): PDO
     {
         if (self::$instance === null) {
-            self::$config = require dirname(__DIR__) . '/config/database.php';
+            $appDir = defined('APP_PATH') ? APP_PATH : dirname(__DIR__);
+            self::$config = require $appDir . '/config/database.php';
             $dsn = sprintf(
                 'mysql:host=%s;dbname=%s;charset=%s',
                 self::$config['host'],
@@ -26,7 +27,8 @@ class Database
                     PDO::ATTR_EMULATE_PREPARES   => false,
                 ]);
             } catch (PDOException $e) {
-                if ((require dirname(__DIR__) . '/config/app.php')['debug']) {
+                $appDir = defined('APP_PATH') ? APP_PATH : dirname(__DIR__);
+                if ((require $appDir . '/config/app.php')['debug']) {
                     throw $e;
                 }
                 die('Database connection failed.');
@@ -38,7 +40,8 @@ class Database
     public static function config(): array
     {
         if (empty(self::$config)) {
-            self::$config = require dirname(__DIR__) . '/config/database.php';
+            $appDir = defined('APP_PATH') ? APP_PATH : dirname(__DIR__);
+            self::$config = require $appDir . '/config/database.php';
         }
         return self::$config;
     }

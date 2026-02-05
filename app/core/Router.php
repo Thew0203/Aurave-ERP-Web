@@ -83,7 +83,7 @@ class Router
         }
 
         http_response_code(404);
-        $config = require dirname(__DIR__) . '/config/app.php';
+        $config = require (defined('APP_PATH') ? APP_PATH : dirname(__DIR__)) . '/config/app.php';
         if ($config['debug']) {
             echo "404 Not Found: {$uri}";
         } else {
@@ -110,7 +110,7 @@ class Router
 
     private function baseUrl(): string
     {
-        $config = require dirname(__DIR__) . '/config/app.php';
+        $config = require (defined('APP_PATH') ? APP_PATH : dirname(__DIR__)) . '/config/app.php';
         return $config['url'];
     }
 }

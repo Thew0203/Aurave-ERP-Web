@@ -17,7 +17,7 @@ class AuthMiddleware
 
     private function baseUrl(): string
     {
-        $config = require dirname(__DIR__) . '/config/app.php';
+        $config = require (defined('APP_PATH') ? APP_PATH : dirname(__DIR__)) . '/config/app.php';
         return $config['url'];
     }
 }

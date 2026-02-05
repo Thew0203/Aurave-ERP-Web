@@ -47,7 +47,7 @@ abstract class Controller
 
     protected function baseUrl(string $path = ''): string
     {
-        $config = require dirname(__DIR__) . '/config/app.php';
+        $config = require (defined('APP_PATH') ? APP_PATH : dirname(__DIR__)) . '/config/app.php';
         $url = $config['url'];
         if ($path !== '') {
             $url .= '/' . ltrim($path, '/');

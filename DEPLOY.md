@@ -1,60 +1,63 @@
 # Deploy Aurave ERP – Quick Guide
 
-## 1. Push to GitHub (Do This First)
+## Deploy from GitHub
 
-```powershell
-cd c:\HOPEXAMPPWORKS\htdocs\Aurave
-
-# Init git (if not already)
-git init
-
-# Add all files
-git add .
-
-# Commit
-git commit -m "Initial commit: Aurave ERP"
-
-# Create repo on GitHub: https://github.com/new
-# Name: Aurave (or aurave-erp)
-# Then:
-
-git remote add origin https://github.com/YOUR_USERNAME/Aurave.git
-git branch -M main
-git push -u origin main
-```
+The project includes a `Dockerfile`. Push to GitHub, then connect your repo to Railway or Render.
 
 ---
 
-## 2. Deployment Options (PHP + MySQL)
+## Option A: Railway (Recommended)
 
-**Important:** Aurave is a PHP + MySQL app. Vercel supports PHP via serverless, but it's designed for static/JAMstack. For a traditional PHP app with MySQL and sessions, these work better:
+1. Go to [railway.app](https://railway.app) and sign in with **GitHub**
+2. Click **New Project**
+3. Select **Deploy from GitHub repo** → choose **Thew0203/Aurave-ERP-Web**
+4. Railway will detect the Dockerfile and start building
+5. Click **+ New** → **Database** → **MySQL** to add a MySQL database
+6. Click your **web service** → **Variables** tab
+7. Add these variables (get DB values from the MySQL service by clicking it → Connect → copy the values):
 
-### Option A: Railway (Recommended – Fastest)
+   | Variable | Value |
+   |----------|-------|
+   | `APP_NAME` | Aurave ERP |
+   | `APP_ENV` | production |
+   | `APP_DEBUG` | 0 |
+   | `APP_URL` | `https://your-app.up.railway.app` (use your Railway URL) |
+   | `DB_HOST` | (from MySQL service, e.g. `roundhouse.proxy.rlwy.net`) |
+   | `DB_NAME` | (from MySQL service) |
+   | `DB_USER` | (from MySQL service) |
+   | `DB_PASS` | (from MySQL service) |
+   | `DB_CHARSET` | utf8mb4 |
 
-1. Go to [railway.app](https://railway.app)
-2. Sign in with GitHub
-3. **New Project** → **Deploy from GitHub** → select your Aurave repo
-4. Add **MySQL** service (Railway provides free MySQL)
-5. Set env vars: `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`, `APP_URL`
-6. Deploy
+8. Click **Settings** → **Networking** → **Generate Domain** to get your public URL
+9. Import database: use Railway's MySQL console or connect with a MySQL client and run `database/schema.sql` then `database/seed.sql`
+10. Open your URL — you should see the app. Login: `superadmin@system.local` / `password`
 
-### Option B: Render
+---
 
-1. [render.com](https://render.com) → Sign in with GitHub
-2. **New** → **Web Service** → connect repo
-3. Environment: **PHP**
-4. Add **MySQL** (or use external DB like PlanetScale)
-5. Set env vars and deploy
+## Option B: Render
 
-### Option C: Vercel + PHP (Experimental)
+1. Go to [render.com](https://render.com) and sign in with **GitHub**
+2. Click **New** → **Web Service**
+3. Connect **Thew0203/Aurave-ERP-Web**
+4. Render will detect the Dockerfile
+5. Click **Add Environment Variable** and add: `APP_NAME`, `APP_ENV`, `APP_DEBUG`, `APP_URL`, `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`, `DB_CHARSET`
+6. **MySQL:** Render doesn't offer free MySQL. Use external MySQL: [PlanetScale](https://planetscale.com) (free tier) or [Railway MySQL](https://railway.app) (create a free project, add MySQL, copy connection details)
+7. Create the service; Render will build and deploy
+8. Import `database/schema.sql` and `database/seed.sql` into your database
+9. Open your Render URL
 
-Vercel can run PHP via [vercel-community/php](https://github.com/vercel-community/php). You need:
+---
 
-- `vercel.json` config
-- MySQL hosted elsewhere (PlanetScale, Railway, etc.)
-- Session handling may need adjustment (serverless = stateless)
+## Push the Dockerfile to GitHub
 
-Use this only if you're comfortable with PHP serverless. Railway/Render are simpler for this app.
+If you just added the Dockerfile, push it:
+
+```bash
+cd /c/HOPEXAMPPWORKS/htdocs/Aurave
+git add Dockerfile .dockerignore DEPLOY.md
+git commit -m "Add Dockerfile for deployment"
+git push origin main
+```
 
 ---
 

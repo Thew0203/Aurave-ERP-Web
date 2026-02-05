@@ -21,6 +21,16 @@ class Order extends Model
         return 'ORD' . str_pad((string) $n, 6, '0', STR_PAD_LEFT);
     }
 
+    /** Total paid this month for dashboard (combines with Sales "Sales This Month") */
+    public function getTotalPaidByMonth(int $year, int $month): float
+    {
+        $row = $this->fetchOne(
+            "SELECT COALESCE(SUM(total), 0) AS t FROM orders WHERE " . $this->tenantWhere() . " AND payment_status = 'paid' AND YEAR(created_at) = ? AND MONTH(created_at) = ?",
+            [$year, $month]
+        );
+        return (float) ($row['t'] ?? 0);
+    }
+
     public function getWithItems(int $id): ?array
     {
         $order = $this->find($id);
@@ -72,5 +82,39 @@ class Order extends Model
             "INSERT INTO order_status_history (order_id, status, notes, created_by) VALUES (?, ?, ?, ?)",
             [$orderId, $status, $notes, $userId]
         );
+    }
+
+    public function updatePaymentStatus(int $orderId, string $status): bool
+    {
+        $valid = ['pending', 'paid', 'failed', 'refunded'];
+        if (!in_array($status, $valid, true)) return false;
+        return $this->update($orderId, ['payment_status' => $status]);
+    }
+
+    /** Super Admin: all orders across companies */
+    public function getListGlobal(int $limit = 15): array
+    {
+        return $this->fetchAll(
+            "SELECT o.id, o.order_number, o.total, o.current_status, o.created_at,
+                    co.name AS company_name, c.name AS customer_name, c.email AS customer_email
+             FROM orders o
+             LEFT JOIN companies co ON o.company_id = co.id
+             LEFT JOIN customers c ON o.customer_id = c.id
+             ORDER BY o.created_at DESC LIMIT " . (int) $limit
+        );
+    }
+
+    /** Super Admin: total order count */
+    public function getCountGlobal(): int
+    {
+        $row = $this->fetchOne("SELECT COUNT(*) AS n FROM orders");
+        return (int) ($row['n'] ?? 0);
+    }
+
+    /** Super Admin: pending/confirmed/processing order count */
+    public function getPendingCountGlobal(): int
+    {
+        $row = $this->fetchOne("SELECT COUNT(*) AS n FROM orders WHERE current_status IN ('pending','confirmed','processing')");
+        return (int) ($row['n'] ?? 0);
     }
 }

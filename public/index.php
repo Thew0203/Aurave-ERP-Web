@@ -24,7 +24,10 @@ if (file_exists(dirname(__DIR__) . '/vendor/autoload.php')) {
     });
 }
 
-$config = require dirname(__DIR__) . '/app/config/app.php';
+if (!defined('APP_PATH')) {
+    define('APP_PATH', dirname(__DIR__) . '/app');
+}
+$config = require APP_PATH . '/config/app.php';
 $isProduction = ($config['env'] ?? 'production') === 'production' && empty($config['debug']);
 if ($isProduction) {
     ini_set('display_errors', '0');

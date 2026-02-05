@@ -10,7 +10,7 @@ class GuestMiddleware
         }
         if (!empty($_SESSION['user_id'])) {
             $role = $_SESSION['role'] ?? 'customer';
-            $config = require dirname(__DIR__) . '/config/app.php';
+            $config = require (defined('APP_PATH') ? APP_PATH : dirname(__DIR__)) . '/config/app.php';
             $base = $config['url'];
             if ($role === 'customer') {
                 header('Location: ' . $base . '/store');

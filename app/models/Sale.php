@@ -36,4 +36,18 @@ class Sale extends Model
         $row = $this->fetchOne("SELECT COALESCE(SUM(total), 0) AS t FROM sales WHERE " . $this->tenantWhere() . " AND status IN ('confirmed','paid') AND YEAR(sale_date) = ? AND MONTH(sale_date) = ?", [$year, $month]);
         return (float) ($row['t'] ?? 0);
     }
+
+    /** Super Admin: total sales count */
+    public function getCountGlobal(): int
+    {
+        $row = $this->fetchOne("SELECT COUNT(*) AS n FROM sales");
+        return (int) ($row['n'] ?? 0);
+    }
+
+    /** Super Admin: total sales this month across all companies */
+    public function getTotalByMonthGlobal(int $year, int $month): float
+    {
+        $row = $this->fetchOne("SELECT COALESCE(SUM(total), 0) AS t FROM sales WHERE status IN ('confirmed','paid') AND YEAR(sale_date) = ? AND MONTH(sale_date) = ?", [$year, $month]);
+        return (float) ($row['t'] ?? 0);
+    }
 }

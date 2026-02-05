@@ -25,11 +25,12 @@ class DashboardController extends Controller
         $orderModel->setTenantId($companyId);
 
         $salesThisMonth = $saleModel->getTotalByMonth((int) date('Y'), (int) date('n'));
-        $salesList = $saleModel->getList();
-        $recentSales = array_slice($salesList, 0, 5);
+        $ordersPaidThisMonth = $orderModel->getTotalPaidByMonth((int) date('Y'), (int) date('n'));
+        $salesThisMonthCombined = $salesThisMonth + $ordersPaidThisMonth;
+        $ordersList = $orderModel->getList();
+        $recentOrders = array_slice($ordersList, 0, 5);
         $inventoryValue = $productModel->getValuation();
         $lowStock = $productModel->getLowStock();
-        $ordersList = $orderModel->getList();
         $pendingOrders = array_filter($ordersList, fn($o) => in_array($o['current_status'], ['pending', 'confirmed', 'processing'], true));
         $ordersCount = count($ordersList);
         $pendingCount = count($pendingOrders);
@@ -50,8 +51,8 @@ class DashboardController extends Controller
 
         $this->view('dashboard.index', [
             'pageTitle' => 'Dashboard',
-            'salesThisMonth' => $salesThisMonth,
-            'recentSales' => $recentSales,
+            'salesThisMonth' => $salesThisMonthCombined,
+            'recentOrders' => $recentOrders,
             'inventoryValue' => $inventoryValue,
             'lowStock' => $lowStock,
             'ordersCount' => $ordersCount,
@@ -72,9 +73,36 @@ class DashboardController extends Controller
         $companyModel = new \App\Models\Company();
         $companies = $companyModel->all();
         $userModel = new \App\Models\User();
+        $orderModel = new Order();
+        $customerModel = new Customer();
+        $productModel = new Product();
+        $saleModel = new Sale();
+
+        $userCounts = $userModel->getCountsGlobal();
+        $recentUsers = $userModel->getRecentGlobal(15);
+        $ordersCount = $orderModel->getCountGlobal();
+        $ordersPending = $orderModel->getPendingCountGlobal();
+        $recentOrders = $orderModel->getListGlobal(10);
+        $customersCount = $customerModel->getCountGlobal();
+        $productsCount = $productModel->getCountGlobal();
+        $inventoryValue = $productModel->getValuationGlobal();
+        $salesCount = $saleModel->getCountGlobal();
+        $salesThisMonth = $saleModel->getTotalByMonthGlobal((int) date('Y'), (int) date('n'));
+
         $this->view('dashboard.super', [
             'pageTitle' => 'Super Admin Dashboard',
             'companies' => $companies,
+            'companiesCount' => count($companies),
+            'userCounts' => $userCounts,
+            'recentUsers' => $recentUsers,
+            'ordersCount' => $ordersCount,
+            'ordersPending' => $ordersPending,
+            'recentOrders' => $recentOrders,
+            'customersCount' => $customersCount,
+            'productsCount' => $productsCount,
+            'inventoryValue' => $inventoryValue,
+            'salesCount' => $salesCount,
+            'salesThisMonth' => $salesThisMonth,
         ]);
     }
 }

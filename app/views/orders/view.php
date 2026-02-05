@@ -10,6 +10,7 @@ include dirname(__DIR__) . '/layout/header.php';
         <h2 class="mb-0">Order: <?= htmlspecialchars($o['order_number'] ?? '') ?></h2>
         <div class="d-flex gap-2">
             <a href="<?= $baseUrl ?>/orders" class="btn btn-secondary">Back</a>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#invoiceModal" data-invoice-url="<?= $baseUrl ?>/orders/invoice/<?= (int)($o['id'] ?? 0) ?>?embed=1">Invoice</button>
             <?php if (($o['current_status'] ?? '') !== 'cancelled'): ?>
             <form method="post" action="<?= $baseUrl ?>/orders/status/<?= (int)($o['id'] ?? 0) ?>" class="d-inline">
                 <input type="hidden" name="status" value="cancelled">
@@ -29,7 +30,19 @@ include dirname(__DIR__) . '/layout/header.php';
             <p><strong>Customer:</strong> <?= htmlspecialchars($o['customer_name'] ?? 'Guest') ?><?= !empty($o['customer_email']) ? ' (' . htmlspecialchars($o['customer_email']) . ')' : '' ?></p>
             <p><strong>Shipping:</strong> <?= htmlspecialchars($o['shipping_name'] ?? '') ?>, <?= htmlspecialchars($o['shipping_phone'] ?? '') ?>, <?= htmlspecialchars($o['shipping_address'] ?? '') ?></p>
             <p><strong>Total:</strong> <?= number_format((float)($o['total'] ?? 0), 2) ?></p>
-            <p><strong>Payment:</strong> <?= htmlspecialchars($o['payment_method'] ?? '') ?> - <span class="badge bg-<?= ($o['payment_status'] ?? '') === 'paid' ? 'success' : 'warning' ?>"><?= htmlspecialchars($o['payment_status'] ?? '') ?></span></p>
+            <p><strong>Payment:</strong> <?= htmlspecialchars($o['payment_method'] ?? '') ?> - <span class="badge bg-<?= ($o['payment_status'] ?? '') === 'paid' ? 'success' : (($o['payment_status'] ?? '') === 'failed' || ($o['payment_status'] ?? '') === 'refunded' ? 'danger' : 'warning') ?>"><?= htmlspecialchars($o['payment_status'] ?? '') ?></span>
+                <?php if (($o['current_status'] ?? '') !== 'cancelled'): ?>
+                <form method="post" action="<?= $baseUrl ?>/orders/payment/<?= (int)($o['id'] ?? 0) ?>" class="d-inline ms-2">
+                    <select name="payment_status" class="form-select form-select-sm d-inline-block w-auto">
+                        <option value="pending" <?= ($o['payment_status'] ?? '') === 'pending' ? 'selected' : '' ?>>Pending</option>
+                        <option value="paid" <?= ($o['payment_status'] ?? '') === 'paid' ? 'selected' : '' ?>>Paid</option>
+                        <option value="failed" <?= ($o['payment_status'] ?? '') === 'failed' ? 'selected' : '' ?>>Failed</option>
+                        <option value="refunded" <?= ($o['payment_status'] ?? '') === 'refunded' ? 'selected' : '' ?>>Refunded</option>
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-outline-primary ms-1">Update</button>
+                </form>
+                <?php endif; ?>
+            </p>
             <p><strong>Status:</strong> <span class="badge bg-secondary"><?= htmlspecialchars($o['current_status'] ?? '') ?></span></p>
             <p class="text-muted small mb-2">Allowed statuses: <strong>pending</strong>, confirmed, processing, shipped, delivered, returned, cancelled.</p>
             <form method="post" action="<?= $baseUrl ?>/orders/status/<?= (int)($o['id'] ?? 0) ?>" class="mt-3">
@@ -91,4 +104,31 @@ include dirname(__DIR__) . '/layout/header.php';
     </div>
     <?php endif; ?>
 </div>
+
+<!-- Invoice Modal -->
+<div class="modal fade" id="invoiceModal" tabindex="-1" aria-labelledby="invoiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="invoiceModalLabel">Order Invoice — <?= htmlspecialchars($o['order_number'] ?? '') ?></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0" style="min-height: 70vh;">
+                <iframe id="invoiceIframe" style="width:100%; height:75vh; border:none;" title="Order Invoice"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.getElementById('invoiceModal').addEventListener('show.bs.modal', function(e) {
+    var btn = e.relatedTarget;
+    var url = btn && btn.getAttribute('data-invoice-url');
+    var iframe = document.getElementById('invoiceIframe');
+    if (url && iframe) iframe.src = url;
+});
+document.getElementById('invoiceModal').addEventListener('hidden.bs.modal', function() {
+    var iframe = document.getElementById('invoiceIframe');
+    if (iframe) iframe.src = 'about:blank';
+});
+</script>
 <?php include dirname(__DIR__) . '/layout/footer.php'; ?>

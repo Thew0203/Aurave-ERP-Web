@@ -54,6 +54,21 @@ class OrderController extends Controller
         $this->redirect($this->baseUrl() . '/orders/view/' . $id);
     }
 
+    public function updatePaymentStatus(string $id): void
+    {
+        $order = $this->order()->find((int) $id);
+        if (!$order) {
+            $this->redirect($this->baseUrl() . '/orders');
+            return;
+        }
+        $status = trim((string) $this->input('payment_status'));
+        if (!$this->order()->updatePaymentStatus((int) $id, $status)) {
+            $this->redirect($this->baseUrl() . '/orders/view/' . $id);
+            return;
+        }
+        $this->redirect($this->baseUrl() . '/orders/view/' . $id);
+    }
+
     public function invoice(string $id): void
     {
         $order = $this->order()->getWithItems((int) $id);
@@ -61,7 +76,7 @@ class OrderController extends Controller
             $this->redirect($this->baseUrl() . '/orders');
             return;
         }
-        $config = require dirname(__DIR__, 2) . '/config/app.php';
+        $config = require (defined('APP_PATH') ? APP_PATH : dirname(__DIR__)) . '/config/app.php';
         $this->view('orders.invoice', ['pageTitle' => 'Order Invoice', 'order' => $order, 'companyName' => $config['name']]);
     }
 

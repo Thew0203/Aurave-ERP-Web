@@ -65,4 +65,34 @@ class User extends Model
     {
         return $this->fetchAll("SELECT * FROM users WHERE company_id = ? ORDER BY name", [$companyId]);
     }
+
+    /** Super Admin: counts by role (all users across system) */
+    public function getCountsGlobal(): array
+    {
+        $row = $this->fetchOne("SELECT
+            COUNT(*) AS total,
+            SUM(role = 'super_admin') AS super_admin,
+            SUM(role = 'admin') AS admin,
+            SUM(role = 'staff') AS staff,
+            SUM(role = 'customer') AS customer
+            FROM users WHERE is_active = 1");
+        return [
+            'total' => (int) ($row['total'] ?? 0),
+            'super_admin' => (int) ($row['super_admin'] ?? 0),
+            'admin' => (int) ($row['admin'] ?? 0),
+            'staff' => (int) ($row['staff'] ?? 0),
+            'customer' => (int) ($row['customer'] ?? 0),
+        ];
+    }
+
+    /** Super Admin: recent registered users with company name */
+    public function getRecentGlobal(int $limit = 15): array
+    {
+        return $this->fetchAll(
+            "SELECT u.id, u.email, u.name, u.role, u.created_at, co.name AS company_name
+             FROM users u LEFT JOIN companies co ON u.company_id = co.id
+             WHERE u.id > 1
+             ORDER BY u.created_at DESC LIMIT " . (int) $limit
+        );
+    }
 }

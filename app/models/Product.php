@@ -67,4 +67,18 @@ class Product extends Model
     {
         return $this->fetchAll("SELECT * FROM products WHERE " . $this->tenantWhere() . " AND quantity <= low_stock_threshold AND is_active = 1 ORDER BY quantity ASC");
     }
+
+    /** Super Admin: total product count */
+    public function getCountGlobal(): int
+    {
+        $row = $this->fetchOne("SELECT COUNT(*) AS n FROM products");
+        return (int) ($row['n'] ?? 0);
+    }
+
+    /** Super Admin: total inventory value across all companies */
+    public function getValuationGlobal(): float
+    {
+        $row = $this->fetchOne("SELECT SUM(quantity * cost_price) AS total FROM products");
+        return (float) ($row['total'] ?? 0);
+    }
 }

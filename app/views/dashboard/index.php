@@ -43,20 +43,26 @@ include dirname(__DIR__) . '/layout/header.php';
     <div class="row">
         <div class="col-lg-6 mb-4">
             <div class="card border-0 shadow-sm animate-slide-up animation-delay-2">
-                <div class="card-header bg-white"><h5 class="mb-0 fw-bold">Recent Sales</h5></div>
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">Recent Orders (OMS)</h5>
+                    <a href="<?= $baseUrl ?>/orders" class="text-decoration-none small">View all</a>
+                </div>
                 <div class="card-body p-0">
                     <table class="table table-hover mb-0">
-                        <thead><tr><th>Invoice</th><th>Date</th><th>Total</th><th></th></tr></thead>
+                        <thead><tr><th>Order</th><th>Date</th><th>Total</th><th></th></tr></thead>
                         <tbody>
-                            <?php foreach ($recentSales ?? [] as $s): ?>
+                            <?php foreach ($recentOrders ?? [] as $o): ?>
                             <tr>
-                                <td><?= htmlspecialchars($s['invoice_number']) ?></td>
-                                <td><?= htmlspecialchars($s['sale_date']) ?></td>
-                                <td><?= number_format((float)$s['total'], 2) ?></td>
-                                <td><a href="<?= $baseUrl ?>/sales/view/<?= (int)$s['id'] ?>" class="text-decoration-none">View</a></td>
+                                <td><?= htmlspecialchars($o['order_number']) ?></td>
+                                <td><?= htmlspecialchars($o['created_at'] ?? $o['order_date'] ?? '') ?></td>
+                                <td><?= number_format((float)($o['total'] ?? 0), 2) ?></td>
+                                <td>
+                                    <a href="<?= $baseUrl ?>/orders/view/<?= (int)$o['id'] ?>" class="text-decoration-none me-2">View</a>
+                                    <a href="<?= $baseUrl ?>/orders/invoice/<?= (int)$o['id'] ?>" class="text-decoration-none" target="_blank" rel="noopener">Invoice</a>
+                                </td>
                             </tr>
                             <?php endforeach; ?>
-                            <?php if (empty($recentSales)): ?><tr><td colspan="4" class="text-muted">No sales yet.</td></tr><?php endif; ?>
+                            <?php if (empty($recentOrders)): ?><tr><td colspan="4" class="text-muted">No orders yet.</td></tr><?php endif; ?>
                         </tbody>
                     </table>
                 </div>

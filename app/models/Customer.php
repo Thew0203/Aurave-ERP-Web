@@ -45,4 +45,11 @@ class Customer extends Model
         $params[] = $userId;
         $this->query("UPDATE customers SET " . implode(', ', $sets) . " WHERE user_id = ?", $params);
     }
+
+    /** Super Admin: total customer count across all companies */
+    public function getCountGlobal(): int
+    {
+        $row = $this->fetchOne("SELECT COUNT(*) AS n FROM customers");
+        return (int) ($row['n'] ?? 0);
+    }
 }

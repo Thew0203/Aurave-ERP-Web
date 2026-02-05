@@ -5,6 +5,9 @@ use App\Core\Controller;
 use App\Models\User;
 use App\Models\Company;
 use App\Models\Customer;
+use App\Models\LoginEvent;
+use App\Models\LoginVerificationToken;
+use App\Services\SecurityMailer;
 
 class AuthController extends Controller
 {
@@ -32,6 +35,9 @@ class AuthController extends Controller
             return;
         }
         $userModel->updateLastLogin((int) $user['id']);
+
+        $this->sendLoginSecurityEmail($user);
+
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
@@ -171,6 +177,107 @@ class AuthController extends Controller
                 'is_system' => 1,
             ]);
         }
+    }
+
+    private function sendLoginSecurityEmail(array $user): void
+    {
+        $config = require (defined('APP_PATH') ? APP_PATH : dirname(__DIR__)) . '/config/app.php';
+        $isDebug = !empty($config['debug']);
+        $userEmail = $user['email'] ?? '';
+
+        try {
+            if (!class_exists(\PHPMailer\PHPMailer\PHPMailer::class)) {
+                if ($isDebug) $_SESSION['mailer_debug'] = 'Login email skipped: PHPMailer not loaded.';
+                return;
+            }
+            $loginEventModel = new LoginEvent();
+            $tokenModel = new LoginVerificationToken();
+            $ip = $_SERVER['REMOTE_ADDR'] ?? null;
+            $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
+            $eventId = $loginEventModel->createEvent((int) $user['id'], $ip, $userAgent);
+            // Link valid for 10 minutes (600 seconds) — after that, verify-login shows "This link has expired."
+            $expiresAt = date('Y-m-d H:i:s', time() + 600);
+            $tokens = [
+                'yes' => bin2hex(random_bytes(32)),
+                'no' => bin2hex(random_bytes(32)),
+            ];
+            foreach ($tokens as $action => $token) {
+                $tokenModel->createToken($eventId, $action, $token, $expiresAt);
+            }
+            $loginEvent = $loginEventModel->findById($eventId);
+            if ($loginEvent) {
+                $sent = SecurityMailer::sendLoginAlert($user, $loginEvent, $tokens);
+                if ($isDebug) {
+                    $_SESSION['mailer_debug'] = $sent
+                        ? 'Login email sent to ' . $userEmail . '. Check that inbox (and Spam).'
+                        : 'Login email could not be sent to ' . $userEmail . '. Check PHP error log (SecurityMailer).';
+                }
+            } elseif ($isDebug) {
+                $_SESSION['mailer_debug'] = 'Login event created but email not sent (event lookup failed).';
+            }
+        } catch (\Throwable $e) {
+            error_log('SecurityMailer send failed: ' . $e->getMessage());
+            if (strpos($e->getMessage(), 'login_events') !== false || strpos($e->getMessage(), 'doesn\'t exist') !== false) {
+                error_log('SecurityMailer: Run database/migrations/security_mailer.sql to create login_events and login_verification_tokens tables.');
+            }
+            if ($isDebug) {
+                $msg = $e->getMessage();
+                if (strpos($msg, 'login_events') !== false || strpos($msg, 'doesn\'t exist') !== false) {
+                    $_SESSION['mailer_debug'] = 'Login email failed: missing database tables. Import database/migrations/security_mailer.sql in phpMyAdmin, then try again.';
+                } else {
+                    $_SESSION['mailer_debug'] = 'Login email failed: ' . htmlspecialchars($msg);
+                }
+            }
+        }
+    }
+
+    public function verifyLogin(): void
+    {
+        $token = trim((string) $this->input('token'));
+        $action = trim((string) $this->input('action'));
+        if ($token === '' || !in_array($action, ['yes', 'no'], true)) {
+            $this->view('auth.verify_result', [
+                'pageTitle' => 'Verification',
+                'action' => 'yes',
+                'message' => 'Invalid or expired link.',
+            ]);
+            return;
+        }
+        $tokenModel = new LoginVerificationToken();
+        $row = $tokenModel->findByToken($token);
+        if (!$row || $row['action'] !== $action) {
+            $this->view('auth.verify_result', [
+                'pageTitle' => 'Verification',
+                'action' => 'yes',
+                'message' => 'Invalid or expired link.',
+            ]);
+            return;
+        }
+        if ($row['clicked_at'] !== null) {
+            $this->view('auth.verify_result', [
+                'pageTitle' => 'Verification',
+                'action' => $action,
+                'message' => 'This link has already been used.',
+            ]);
+            return;
+        }
+        // Expired if past expires_at (set to 10 minutes when token was created)
+        if (strtotime($row['expires_at']) < time()) {
+            $this->view('auth.verify_result', [
+                'pageTitle' => 'Verification',
+                'action' => 'yes',
+                'message' => 'This link has expired.',
+            ]);
+            return;
+        }
+        $tokenModel->markClicked((int) $row['id'], $_SERVER['REMOTE_ADDR'] ?? null);
+        $this->view('auth.verify_result', [
+            'pageTitle' => 'Verification',
+            'action' => $action,
+            'message' => $action === 'yes'
+                ? 'Thank you. Your response has been recorded.'
+                : 'We have recorded that this login was not recognized by you.',
+        ]);
     }
 
     public function logout(): void

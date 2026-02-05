@@ -17,6 +17,14 @@ $isStaff = in_array($role, ['super_admin', 'admin', 'staff'], true);
     <link href="<?= $baseUrl ?>/assets/css/app.css" rel="stylesheet">
 </head>
 <body class="d-flex flex-column min-vh-100">
+<?php if (!empty($_SESSION['mailer_debug'])): ?>
+<div class="container-fluid py-2">
+    <div class="alert alert-info alert-dismissible fade show mb-0" role="alert">
+        <?= htmlspecialchars($_SESSION['mailer_debug']) ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+</div>
+<?php unset($_SESSION['mailer_debug']); endif; ?>
 <nav class="navbar navbar-expand-lg navbar-dark navbar-aruave">
     <div class="container-fluid">
         <a class="navbar-brand" href="<?= $baseUrl ?>"><i class="bi bi-cpu me-1"></i><?= htmlspecialchars($config['name']) ?></a>

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Aruave – Electronics & IT Industry ERP
 
 A complete, business-ready web ERP for the **electronics and IT industry** (Arduino, networking, computers, components & more). Integrated e-commerce and order management. Built with PHP (OOP, MVC), MySQL, Bootstrap 5, and vanilla JavaScript. Multi-tenant (SaaS-ready), animated UI, and XAMPP/LAMP compatible.
@@ -84,8 +83,7 @@ Validation on create/update: name required; cost price, selling price, quantity,
 │   ├── index.php       # Entry point
 │   ├── .htaccess       # Rewrite to index.php
 │   └── assets/         # css/app.css, js/app.js
-├── .env                 # Copy from .env.example and set DB credentials
-├── .env.example
+├── .env                 # Environment config (DB, mailer). Create from README.
 ├── composer.json
 └── README.md
 ```
@@ -105,14 +103,35 @@ Validation on create/update: name required; cost price, selling price, quantity,
 2. In phpMyAdmin (or MySQL client):
    - Import `database/schema.sql`.
    - Then import `database/seed.sql`.
+   - For login security emails, import `database/migrations/security_mailer.sql`.
 
 ### 3. Configuration
 
-1. Copy `.env.example` to `.env` (or use the provided `.env`).
-2. Set in `.env`:
+1. Create a `.env` file in the project root with:
+
+   **Required (app & database):**
+   - `APP_NAME=Aurave ERP`
+   - `APP_ENV=development`
+   - `APP_DEBUG=1`
+   - `APP_URL=http://localhost/Aurave/public`
+   - `DB_HOST=localhost`
    - `DB_NAME=aurave_erp`
-   - `DB_USER=` and `DB_PASS=` (e.g. `root` and empty for XAMPP)
-   - `APP_URL=http://localhost/Aurave/public` (adjust if your path differs)
+   - `DB_USER=root`
+   - `DB_PASS=`
+   - `DB_CHARSET=utf8mb4`
+   - `SESSION_LIFETIME=7200`
+   - `DEFAULT_TIMEZONE=UTC`
+
+   **Login security mailer (sends “You logged in” to every user who logs in):**
+   - `MAILER_ENABLED=1`
+   - `MAILER_FROM_EMAIL=` your sending Gmail (e.g. `you@gmail.com`)
+   - `MAILER_FROM_NAME=Aurave`
+   - `SMTP_HOST=smtp.gmail.com`
+   - `SMTP_PORT=587`
+   - `SMTP_USER=` same as MAILER_FROM_EMAIL
+   - `SMTP_PASS=` Gmail App Password (16 chars, no spaces)
+
+   **If login emails don’t arrive:** (1) Import `database/migrations/security_mailer.sql`. (2) Set `APP_DEBUG=1` in .env and check PHP error log for "SecurityMailer SMTP:" or "SecurityMailer:". (3) Confirm the user’s email in the `users` table. (4) Restart Apache after changing .env.
 
 ### 4. Web Server (Apache)
 
@@ -186,6 +205,7 @@ The seed creates **only one user** (Super Admin). No employees, customers, or ot
 ## Features Implemented
 
 - **Auth:** Login, register, logout, role-based redirects.
+- **Login security mailer:** On every login, an email is sent to **that user’s email** (from the database). Sender shows as "Aurave". No hardcoded recipient list; every user (karbonOlid@gmail.com, shermil@ssu.edu.ph, etc.) gets the alert at their own address.
 - **Inventory:** Products CRUD, categories, suppliers, stock in/out, low-stock alerts, valuation.
 - **Production:** BOM (header + items), production orders, material consumption, finished goods.
 - **Sales:** POS-style sales, customer selection, invoices, sales list.
@@ -210,6 +230,3 @@ See **[SECURITY.md](SECURITY.md)** for how to report vulnerabilities and what no
 ## License
 
 MIT License. See **[LICENSE](LICENSE)**.
-=======
-# Aurave-ERP-Web
->>>>>>> dfc98f0841ef446a6ed3ba78fd57078d55ef8b73

@@ -111,7 +111,7 @@ class SalesController extends Controller
     {
         $sale = $this->sale()->getWithItems((int) $id);
         if (!$sale) { $this->redirect($this->baseUrl() . '/sales'); return; }
-        $config = require dirname(__DIR__, 2) . '/config/app.php';
+        $config = require (defined('APP_PATH') ? APP_PATH : dirname(__DIR__)) . '/config/app.php';
         $this->view('sales.invoice', ['pageTitle' => 'Invoice', 'sale' => $sale, 'companyName' => $config['name']]);
     }
 
